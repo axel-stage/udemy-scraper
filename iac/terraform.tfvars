@@ -1,0 +1,13 @@
+project                     = "udemy-scraper"
+environment                 = "development"
+region                      = "eu-central-1"
+bucket_name                 = "udemy"
+force_destroy_bucket        = true
+bucket_versioning           = "Disabled"
+bucket_zones                = ["udemy-upstream-zone/", "certificate-landing-zone/", "certificate-upstream-zone/"]
+udemy_function_name         = "udemy-web-scraper"
+certificate_function_name   = "certificate-image-scraper"
+function_timeout            = 180
+function_memory_size        = 256
+python_version              = "3.13"
+lambda_logging_retention    = 1
