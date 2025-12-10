@@ -10,6 +10,7 @@ logger.setLevel(logging.INFO)
 
 def list_jpg_keys_in_bucket(bucket: str) -> list[str]:
     """Get a list of keys which end with 'jpg' in an S3 bucket."""
+    s3_resource = boto3.resource('s3')
     s3_bucket = s3_resource.Bucket(bucket)
     keys = []
     for obj in s3_bucket.objects.all():
@@ -22,9 +23,7 @@ def lambda_handler(event, context):
     logger.info(f"{"#" * 80}")
     logger.info("Start processing...")
 
-    s3_resource = boto3.resource('s3')
     s3_client = boto3.client('s3')
-
     bucket_name: str = event.get("bucket_name", "")
     upstream_prefix: str = event.get("upstream_prefix", "")
     local_path: str = event.get("local_path", "")
