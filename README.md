@@ -40,6 +40,18 @@ Navigate to the project's iac directory:
 ```bash
 cd udemy-scraper/iac
 ```
+Change the provider setup in iac/providors.tf:
+```hcl
+provider "aws" {
+  region                   = var.region
+  profile                  = "default"
+  shared_config_files      = ["<add path to your AWS config file>"]
+  shared_credentials_files = ["<add path to your AWS credentials file>"]
+  ...
+  }
+}
+```
+
 Use Terraform to deploy infrastructure on AWS:
 ```bash
 terraform init
