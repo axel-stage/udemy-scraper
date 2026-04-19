@@ -21,6 +21,13 @@ resource "aws_ecr_repository" "lambda" {
 }
 
 resource "terraform_data" "login" {
+
+  triggers_replace = [
+    var.api_image_version,
+    var.certificate_image_version,
+    var.pipeline_image_version
+  ]
+
   provisioner "local-exec" {
     command = <<EOT
       docker login ${local.ecr_login_url} \
@@ -32,6 +39,10 @@ resource "terraform_data" "login" {
 
 resource "terraform_data" "build_api" {
   depends_on = [terraform_data.login]
+
+  triggers_replace = [
+    var.api_image_version
+  ]
 
   provisioner "local-exec" {
     command = <<EOT
@@ -50,6 +61,10 @@ resource "terraform_data" "build_api" {
 resource "terraform_data" "build_certificate" {
   depends_on = [terraform_data.login]
 
+  triggers_replace = [
+    var.certificate_image_version
+  ]
+
   provisioner "local-exec" {
     command = <<EOT
       docker build \
@@ -66,6 +81,10 @@ resource "terraform_data" "build_certificate" {
 
 resource "terraform_data" "build_pipeline" {
   depends_on = [terraform_data.login]
+
+  triggers_replace = [
+    var.pipeline_image_version
+  ]
 
   provisioner "local-exec" {
     command = <<EOT
