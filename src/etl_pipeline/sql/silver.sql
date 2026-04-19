@@ -9,6 +9,7 @@ select
     published_title::varchar as slug,
     url::varchar as url,
     case
+    when 'Ligency' in instructor_title then 'Ed Donner'
     when '|' in instructor_title then trim(string_split(instructor_title, '|')[1])
     when '(' in instructor_title then trim(string_split(instructor_title, '(')[1])
     when ',' in instructor_title then trim(string_split(instructor_title, ',')[1])
