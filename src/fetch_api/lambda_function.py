@@ -3,9 +3,9 @@ AWS Lambda function to request the Udemy API for course data and persist it to S
 """
 
 import json
-from datetime import datetime, timezone
 import logging
-from typing import Any, TypedDict
+from datetime import datetime, timezone
+from typing import Any, TypedDict, Callable
 
 import requests
 import boto3
@@ -74,6 +74,31 @@ def fetch_api(url: str) -> dict[str, Any]:
     return response.json()
 
 
+def validate_response_data(
+    data: dict[str, Any], schema: dict[str, Callable[..., Any]]
+) -> None:
+    """
+    Validates data from the API response.
+
+    Args:
+        data: response dict
+        schema: validation dict
+    """
+    for key, validator_func in schema.items():
+        if key not in data:
+            raise KeyError(f"{key} is required")
+
+        if not validator_func(data[key]):
+            raise ValueError(f"{data[key]} is not valid")
+
+
+def get_response_schema() -> dict[str, Callable[..., Any]]:
+    return {
+        "title": lambda value: isinstance(value, str) and len(value) > 0,
+        "published_title": lambda value: isinstance(value, str) and len(value) > 0,
+        "url": lambda value: isinstance(value, str) and len(value) > 0,
+    }
+
 def upload_to_s3(bucket_name: str, key: str, payload: dict[str, Any]) -> None:
     """
     Upload payload as JSON to S3.
@@ -119,6 +144,8 @@ def lambda_handler(event: LambdaEvent, context: object) -> None:
     try:
         url = f"{BASE_URL}/courses/{COURSE_SLUG}/"
         data = fetch_api(url)
+        response_schema = get_response_schema()
+        validate_response_data(data, response_schema)
         data["certificate_id"] = CERTIFICATE_ID
         data["source_system"] = "lambda_api"
         data["created_at"] = datetime.now(timezone.utc).isoformat()
@@ -128,7 +155,7 @@ def lambda_handler(event: LambdaEvent, context: object) -> None:
         logger.info("Fetch data: %s", data)
         logger.info("Uploaded to s3://%s/%s", BUCKET_NAME, key)
 
-    except (requests.RequestException, ClientError) as error:
+    except (requests.RequestException, ClientError, KeyError, ValueError) as error:
         logger.error("Processing failed: %s", error)
         raise error
 
